@@ -1,0 +1,39 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# --- Base de données ---
+# On ignore la DB de test et les éventuelles bases locales
+*.db
+*.sqlite
+*.sqlite3
+
+# --- Éditeurs & IDE (VS Code) ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- PyInstaller (Builds & Exécutables) ---
+# Empêche de versionner les dossiers de compilation et l'exe final dans le repo
+build/
+dist/
+*.spec
+
+# --- Fichiers de sortie / Données utilisateur ---
+# Dossier des clôtures PDF (généré dynamiquement)
+clôtures/
+clotures/
+*.pdf
+
+# --- OS / Divers ---
+.DS_Store
+Thumbs.db
