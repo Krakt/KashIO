@@ -63,13 +63,13 @@ class DashboardWidget(ctk.CTkFrame):
         self.ticket_lbl = ctk.CTkLabel(self.ticket_section, text="Tickets", font=("Arial", 12, "bold"))
         self.ticket_lbl.grid(row=0, column=0, columnspan=2, pady=5, sticky="ew")
 
-        # Draw the launch period card for the dashboard
-        self.launch_period_card = PeriodCard(self.ticket_section,
+        # Draw the lunch period card for the dashboard
+        self.lunch_period_card = PeriodCard(self.ticket_section,
                                              title="Midi",
                                              ticket_count=0,
                                              ticket_takeaway_count=0,
                                              ticket_amount="0.00")
-        self.launch_period_card.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
+        self.lunch_period_card.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
         # Draw the evening period card for the dashboard
         self.evening_period_card = PeriodCard(self.ticket_section,
@@ -131,10 +131,10 @@ class DashboardWidget(ctk.CTkFrame):
         self.gross_amount_card.update_value(f"{data['gross_amount']:.2f}")
         self.net_amount_card.update_value(f"{data['net_amount']:.2f}")
 
-        self.launch_period_card.update_values(
-            data['launch_ticket_count'], 
-            data['launch_ticket_takeaway_count'], 
-            f"{data['launch_amount']:.2f}"
+        self.lunch_period_card.update_values(
+            data['lunch_ticket_count'], 
+            data['lunch_ticket_takeaway_count'], 
+            f"{data['lunch_amount']:.2f}"
         )
         self.evening_period_card.update_values(
             data['evening_ticket_count'], 

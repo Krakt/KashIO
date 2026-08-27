@@ -232,3 +232,85 @@ class ClosureModal(ctk.CTkToplevel):
     def _confirm(self):
         self.on_confirm(self.date_entry.get(), self.send_email_var.get())
         self.destroy()
+
+################################
+### Extended CTK components ####
+################################
+class ValueSegmentedButton(ctk.CTkSegmentedButton):
+    def __init__(self, master, items, current_lang, **kwargs):
+        # items: [{"code": "lunch", "text": {"fr": "Midi", "de": "Mittag"}}, ...]
+        self.items = items
+        self.lang = current_lang
+        
+        # Build list of display texts for the UI
+        display_values = [item["text"][self.lang] for item in items]
+        
+        super().__init__(master, values=display_values, **kwargs)
+        
+        # Set default to the first item's text
+        if display_values:
+            self.set(display_values[0])
+
+    def get_value(self):
+        current_text = self.get()
+        for item in self.items:
+            if item["text"][self.lang] == current_text:
+                return item["code"]
+        return None
+
+
+class ValueComboBox(ctk.CTkComboBox):
+    def __init__(self, master, items, current_lang, **kwargs):
+        self.items = items
+        self.lang = current_lang
+        
+        display_values = [item["text"][self.lang] for item in items]
+        
+        super().__init__(master, values=display_values, **kwargs)
+        
+        if display_values:
+            self.set(display_values[0])
+
+    def get_value(self):
+        current_text = self.get()
+        for item in self.items:
+            if item["text"][self.lang] == current_text:
+                return item["code"]
+        return None
+
+
+class NumericEntry(ctk.CTkEntry):
+    def __init__(self, master, allow_float=True, **kwargs):
+        super().__init__(master, **kwargs)
+        self.allow_float = allow_float
+        
+        # Register the validation command with Tkinter
+        vcmd = (self.register(self._validate_input), '%P')
+        self.configure(validate='key', validatecommand=vcmd)
+
+    def _validate_input(self, proposed_value):
+        # Allow empty field so the user can backspace everything
+        if proposed_value == "":
+            return True
+
+        if self.allow_float:
+            # Check if it's a valid partial or full float (e.g., "12", "12.", "12.50")
+            if proposed_value.count('.') <= 1:
+                try:
+                    float(proposed_value)
+                    return True
+                except ValueError:
+                    return False
+            return False
+        else:
+            # Integers only
+            return proposed_value.isdigit()
+
+    def get_value(self):
+        val = self.get().strip()
+        if not val:
+            return 0.0 if self.allow_float else 0
+        try:
+            return float(val) if self.allow_float else int(val)
+        except ValueError:
+            return 0.0 if self.allow_float else 0

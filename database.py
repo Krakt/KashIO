@@ -1,32 +1,90 @@
 import sqlite3
+import os
+import sys
 from datetime import datetime, timedelta
 
-def init_db():
-    conn = sqlite3.connect('kashio.db')
+# Current application database version
+ACTUAL_VERSION = 1
+CLOSURES_DIR = "closures"
+
+def get_db_connection():
+    return sqlite3.connect('kashio.db')
+
+def check_database_version(db_path):
+    conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Execute the SQL statements to create tables
-    with open('database.sql', 'r', encoding='utf-8') as f:
+    # Create the table for the version of the db if it doesn't exist
+    cursor.execute("CREATE TABLE IF NOT EXISTS db_version (version INTEGER PRIMARY KEY)")
+    
+    # Fetch the version of the db
+    cursor.execute("SELECT version FROM db_version")
+    row = cursor.fetchone()
+    
+    if row is None:
+        # If the table is empty, initialize to the current version
+        cursor.execute("INSERT INTO db_version (version) VALUES (?)", (ACTUAL_VERSION,))
+        conn.commit()
+    else:
+        version_db = row[0]
+        if version_db < ACTUAL_VERSION:
+            # Call the migration process if the database is outdated
+            run_migrations(conn, version_db)
+            
+    conn.close()
+
+def run_migrations(conn, version_db):
+    print(f"Database update required from version {version_db} to {ACTUAL_VERSION}")
+    # Add migration logic here as the app grows
+    # Example:
+    # if version_db < 2:
+    #     conn.execute("ALTER TABLE ...")
+    
+    conn.execute("UPDATE db_version SET version = ?", (ACTUAL_VERSION,))
+    conn.commit()
+
+def get_resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+def init_db():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Use get_resource_path to find the SQL file
+    sql_path = get_resource_path('database.sql')
+    
+    with open(sql_path, 'r', encoding='utf-8') as f:
         cursor.executescript(f.read())
     
     conn.commit()
     conn.close()
 
+def ensure_closures_dir():
+    """Create the closures directory if it does not exist."""
+    if not os.path.exists(CLOSURES_DIR):
+        os.makedirs(CLOSURES_DIR)
+        print(f"[INFO] Created directory: {CLOSURES_DIR}")
 
 def save_closure_to_database(tickets_data, reductions_data, closure_date, is_email_sent):
-        # Save the current state of tickets and reductions to the database
-    with open_database_connection() as conn:
+    # Ensure the directory exists before saving anything
+    ensure_closures_dir()
+    
+    with get_db_connection() as conn:
         cursor = conn.cursor()
-        
         try:
-            # 1. Créer la clôture du jour
             cursor.execute("""
                 INSERT INTO closures (closure_date, is_email_sent) 
                 VALUES (?, ?)
             """, (closure_date, 1 if is_email_sent else 0))
             closure_id = cursor.lastrowid
 
-            # 2. Insérer les tickets
             for ticket in tickets_data:
                 cursor.execute("""
                     INSERT INTO tickets (closure_id, wording, is_evening, is_takeaway, method, amount)
@@ -40,7 +98,6 @@ def save_closure_to_database(tickets_data, reductions_data, closure_date, is_ema
                     float(ticket["amount"].get() or 0)
                 ))
 
-            # 3. Insérer les réductions
             for reduction in reductions_data:
                 cursor.execute("""
                     INSERT INTO reductions (closure_id, count, method, amount)
@@ -52,11 +109,8 @@ def save_closure_to_database(tickets_data, reductions_data, closure_date, is_ema
                     float(reduction["reduction_amount"].get() or 0)
                 ))
 
-            # Si on arrive ici sans erreur, le 'with' valide (commit) tout d'un coup.
             conn.commit()
-            
         except Exception as e:
-            # En cas de pépin, SQLite annule tout (rollback)
             conn.rollback()
             raise e
 
@@ -152,12 +206,12 @@ def get_data_between_dates(start_date, end_date):
             }
         
         except Exception as e:
-            print(f"Une erreur est survenue:\n {e}")
+            print(f"An error occurred:\n {e}")
             return None
 
 
 def get_payment_methods_summary(start_date, end_date):
-    """Récupère le total des montants par moyen de paiement sur une période donnée"""
+    """Retrieves the total amounts by payment method for a given period."""
     with open_database_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -171,7 +225,7 @@ def get_payment_methods_summary(start_date, end_date):
 
 
 def seed_test_data():
-    """Génère un jeu de test de 3 semaines (mardi au dimanche, pas de lundi)"""
+    """Generates a 3-week test set (Tuesday to Sunday, no Mondays)"""
     import random
     
     with open_database_connection() as conn:
@@ -238,4 +292,4 @@ def seed_test_data():
                 # Si la date existe déjà, on ignore pour le test
                 continue
         
-        print("[INFO] Jeu de données de test inséré avec succès (sans les lundis) !")
+        print("[INFO] Test dataset successfully inserted (excluding Mondays) !")

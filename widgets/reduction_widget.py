@@ -1,5 +1,7 @@
 import customtkinter as ctk
+from config import CONFIG, CURRENT_LANG
 from .base_widget import BaseWidget
+from .ui_widgets import ValueComboBox, NumericEntry
 
 class ReductionWidget(BaseWidget):
     """
@@ -7,13 +9,12 @@ class ReductionWidget(BaseWidget):
     Handles dynamic row creation, validation, and total amount calculation.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, master, title, **kwargs):
         """Initializes the ReductionWidget and sets up the user interface."""
-        super().__init__(*args, **kwargs)
         
         # Define the reduction section columns
-        for i in range(3):
-            self.scrollable_frame.columnconfigure(i, weight=1)
+        headers = ["Nombre", "Méthode", "Montant"]
+        super().__init__(master, title, headers=headers, **kwargs)
 
 
         self.warning_lbl = ctk.CTkLabel(
@@ -22,12 +23,6 @@ class ReductionWidget(BaseWidget):
             font=("Arial", 10, "bold"),
             text_color="red")
         self.warning_lbl.grid(row=0, column=0, columnspan=3, pady=5, sticky="ew")
-
-        # Draw the label of the columns
-        headers = ["Nombre", "Méthode", "Montant"]
-        for i, text in enumerate(headers):
-            lbl = ctk.CTkLabel(self.scrollable_frame, text=text, font=("Arial", 12, "bold"))
-            lbl.grid(row=0, column=i, padx=5, pady=5, sticky="ew")
 
         self.create_new_row()
 
@@ -86,16 +81,18 @@ class ReductionWidget(BaseWidget):
         var_reduction_count.trace_add("write", update_amount)
         var_reduction_count.trace_add("write", update_amount)
 
-        reduction_count_entry = ctk.CTkEntry(self.scrollable_frame,
-                                             textvariable=var_reduction_count,
-                                             width=120)
+
+        reduction_count_entry = NumericEntry(self.scrollable_frame, False, textvariable=var_reduction_count, width=120)
         reduction_count_entry.grid(row=row_index, column=0, padx=5, pady=5, sticky="ew")
 
-        reduction_method_cb = ctk.CTkComboBox(self.scrollable_frame,
-                                                 width=100,
-                                                 values=["Espèces", "Carte", "Recka", "Twint", "Autre"],
-                                                 command=lambda value: self.on_change())
+
+        reduction_method_cb = ValueComboBox(self.scrollable_frame,
+                                            items=CONFIG["lookups"]["payment_methods"],
+                                            current_lang=CURRENT_LANG,
+                                            width=100,
+                                            command=self.on_change)
         reduction_method_cb.grid(row=row_index, column=1, padx=5, pady=5, sticky="ew")
+
 
         reduction_amount_entry = ctk.CTkLabel(self.scrollable_frame,
                                               textvariable=var_reduction_amount,
