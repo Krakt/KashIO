@@ -44,10 +44,11 @@ CREATE TABLE IF NOT EXISTS shops (
 -- Table for expenses
 CREATE TABLE IF NOT EXISTS expenses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    closure_id INTEGER NOT NULL,
     shop_id INTEGER NOT NULL,
     category_code TEXT NOT NULL, -- Storing the localization code (e.g., 'cat_food')
+    method TEXT NOT NULL,
     amount REAL NOT NULL,
-    paid_in_cash BOOLEAN DEFAULT 1, -- True if payed in cash
     FOREIGN KEY (closure_id) REFERENCES closures(id) ON DELETE CASCADE,
     FOREIGN KEY (shop_id) REFERENCES shops(id)
 );

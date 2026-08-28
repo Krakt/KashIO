@@ -1,6 +1,6 @@
 {
   "settings": {
-    "default_language": "fr"
+    "default_language": "de"
   },
   "lookups": {
     "periods": [
@@ -18,6 +18,12 @@
       {"code": "reka", "text": {"fr": "Reka", "de": "Reka"}},
       {"code": "twint", "text": {"fr": "Twint", "de": "Twint"}},
       {"code": "other", "text": {"fr": "Autre", "de": "Andere"}}
+    ],
+    "expense_categories": [
+      {"code": "food", "text": {"fr": "Nouriture", "de": "Nahrung"}},
+      {"code": "drink", "text": {"fr": "Boisson", "de": "Getränk"}},
+      {"code": "fuel", "text": {"fr": "Essence", "de": "Benzin"}},
+      {"code": "other", "text": {"fr": "Divers", "de": "Verschiedenes"}}
     ]
   }
 }

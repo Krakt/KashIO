@@ -23,16 +23,16 @@ class App(ctk.CTk):
 
 
     def on_closing(self):
-        """Fermeture propre de l'application et des graphiques"""
+        """Closing nicely the GUI and the graphics"""
         import matplotlib.pyplot as plt
         
-        # 1. Fermer toutes les figures Matplotlib
+        # 1. Close Matplotlib
         plt.close('all')
         
-        # 2. Détruire l'application Tkinter
+        # 2. Destroy Tkinter app
         self.destroy()
         
-        # 3. Quitter explicitement le processus Python
+        # 3. Quit Python processus
         import sys
         sys.exit(0)
 
@@ -42,5 +42,4 @@ if __name__ == "__main__":
     app._set_appearance_mode("dark")  # Set the appearance mode to dark
     init_db()  # Initialize the database
     #seed_test_data() # For development purposes only
-    
     app.mainloop()

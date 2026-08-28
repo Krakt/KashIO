@@ -38,51 +38,42 @@ class StatCard(ctk.CTkFrame):
 
 class PeriodCard(ctk.CTkFrame):
     """
-    Build a card to display the tickets by time period launch/evening.
+    Card displaying ticket counts (total, eat-in, takeaway, delivery) and total gross amount for a period.
     """
-    def __init__(self, master, title: str, ticket_count: str, ticket_takeaway_count: str, ticket_amount: str, **kwargs):
-        """
-        Initialize and build the period card.
-
-        Args:
-            master: the parent components.
-            title (str): the title of the card to display.
-            ticket_count (str): the count of ticket (numeric string only).
-            ticket_takeaway_count (str): the count of ticket of takeaways (numeric string only).
-            ticket_amount (str): the amount to display (numeric string only).
-        """
+    def __init__(self, master, title, ticket_count=0, eat_in_count=0, takeaway_count=0, delivery_count=0, amount="0.00", **kwargs):
         super().__init__(master, **kwargs)
         
-        # Title
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+
+        # Period Title
         self.title_lbl = ctk.CTkLabel(self, text=title, font=("Arial", 12, "bold"))
-        self.title_lbl.pack(pady=(10, 0))
-        
-        # Tickets count
-        self.number_tickets_lbl = ctk.CTkLabel(self, text=f"Nombre de tickets: {ticket_count}", font=("Arial", 14))
-        self.number_tickets_lbl.pack(pady=(5, 0))
+        self.title_lbl.grid(row=0, column=0, columnspan=2, pady=(5, 2), sticky="ew")
 
-        # Takeaway Tickets count
-        self.number_tickets_takeaway_lbl = ctk.CTkLabel(self,
-                                                        text=f"Nombre d'emporté: {ticket_takeaway_count}",
-                                                        font=("Arial", 14))
-        self.number_tickets_takeaway_lbl.pack(pady=(5, 0))
-        
-        # Amount
-        self.amount_lbl = ctk.CTkLabel(self, text=f"Montant: {ticket_amount}", font=("Arial", 14))
-        self.amount_lbl.pack(pady=(5, 10))
+        # Gross Amount (Highlighted)
+        self.amount_lbl = ctk.CTkLabel(self, text=f"{amount} CHF", font=("Arial", 14, "bold"))
+        self.amount_lbl.grid(row=1, column=0, columnspan=2, pady=(0, 5), sticky="ew")
 
-    def update_values(self, new_ticket_count: str, new_ticket_takeaway_count: str, new_ticket_amount: str):
-        """
-        Update the values of the period card.
+        # Detailed breakdown labels
+        self.total_tickets_lbl = ctk.CTkLabel(self, text=f"Total Tickets: {ticket_count}", font=("Arial", 11))
+        self.total_tickets_lbl.grid(row=2, column=0, sticky="w", padx=10)
 
-        Args:
-            new_ticket_count (str): the new count of ticket (numeric string only).
-            new_ticket_takeaway_count (str): the new count of ticket of takeaways (numeric string only).
-            new_ticket_amount (str): the new amount to display (numeric string only).
-        """
-        self.number_tickets_lbl.configure(text=f"Nombre de tickets: {new_ticket_count}")
-        self.number_tickets_takeaway_lbl.configure(text=f"Nombre d'emporté: {new_ticket_takeaway_count}")
-        self.amount_lbl.configure(text=f"Montant: {new_ticket_amount}")
+        self.eat_in_lbl = ctk.CTkLabel(self, text=f"Sur place: {eat_in_count}", font=("Arial", 10))
+        self.eat_in_lbl.grid(row=3, column=0, sticky="w", padx=10)
+
+        self.takeaway_lbl = ctk.CTkLabel(self, text=f"À emporter: {takeaway_count}", font=("Arial", 10))
+        self.takeaway_lbl.grid(row=2, column=1, sticky="w", padx=10)
+
+        self.delivery_lbl = ctk.CTkLabel(self, text=f"Livraison: {delivery_count}", font=("Arial", 10))
+        self.delivery_lbl.grid(row=3, column=1, columnspan=2, sticky="w", padx=10)
+
+    def update_values(self, ticket_count, eat_in_count, takeaway_count, delivery_count, amount):
+        """Refreshes all counts and the monetary total for the period card."""
+        self.total_tickets_lbl.configure(text=f"Total Tickets: {ticket_count}")
+        self.eat_in_lbl.configure(text=f"Sur place: {eat_in_count}")
+        self.takeaway_lbl.configure(text=f"À emporter: {takeaway_count}")
+        self.delivery_lbl.configure(text=f"Livraison: {delivery_count}")
+        self.amount_lbl.configure(text=f"{amount} CHF")
 
 
 class ReductionCard(ctk.CTkFrame):
@@ -314,3 +305,98 @@ class NumericEntry(ctk.CTkEntry):
             return float(val) if self.allow_float else int(val)
         except ValueError:
             return 0.0 if self.allow_float else 0
+
+import customtkinter as ctk
+
+class AutocompleteEntry(ctk.CTkFrame):
+    """
+    A CustomTkinter entry field with a floating Toplevel dropdown for autocomplete suggestions.
+    """
+    def __init__(self, master, suggestions=None, **kwargs):
+        super().__init__(master, fg_color="transparent", **kwargs)
+        self.suggestions = suggestions or []
+        
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
+        # Main text entry
+        self.entry = ctk.CTkEntry(self)
+        self.entry.grid(row=0, column=0, sticky="ew")
+        self.entry.bind("<KeyRelease>", self._on_keyrelease)
+        self.entry.bind("<FocusOut>", self._delayed_hide) # Hide when clicking away
+
+        self.suggestion_win = None
+
+    def get_value(self):
+        return self.entry.get().strip()
+
+    def set_value(self, value):
+        self.entry.delete(0, "end")
+        self.entry.insert(0, value)
+
+    def _on_keyrelease(self, event):
+        term = self.entry.get().lower()
+        
+        if not term:
+            self._hide_suggestions()
+            return
+
+        matches = [s for s in self.suggestions if term in s.lower() and s.lower() != term]
+        
+        if matches:
+            self._show_suggestions(matches)
+        else:
+            self._hide_suggestions()
+
+    def _show_suggestions(self, matches):
+        self._hide_suggestions()
+
+        # Get absolute screen coordinates of the entry box
+        self.update_idletasks()
+        x = self.entry.winfo_rootx()
+        y = self.entry.winfo_rooty() + self.entry.winfo_height()
+        width = self.entry.winfo_width()
+
+        # Create a borderless floating Toplevel window for the dropdown
+        self.suggestion_win = ctk.CTkToplevel(self)
+        self.suggestion_win.wm_overrideredirect(True)
+        self.suggestion_win.geometry(f"{width}x{min(len(matches), 5) * 30}+{x}+{y}")
+        self.suggestion_win.attributes("-topmost", True)
+
+        # Frame inside the popup
+        frame = ctk.CTkFrame(self.suggestion_win, border_width=1, border_color="gray")
+        frame.pack(fill="both", expand=True)
+        frame.columnconfigure(0, weight=1)
+
+        for i, match in enumerate(matches[:5]):
+            btn = ctk.CTkButton(
+                frame, 
+                text=match, 
+                fg_color="transparent", 
+                text_color=("black", "white"),
+                hover_color=("gray80", "gray30"),
+                anchor="w",
+                height=25,
+                command=lambda m=match: self._select_suggestion(m)
+            )
+            btn.grid(row=i, column=0, sticky="ew", padx=2, pady=1)
+
+    def _select_suggestion(self, value):
+        self.entry.delete(0, "end")
+        self.entry.insert(0, value)
+        self._hide_suggestions()
+
+    def _delayed_hide(self, event):
+        # Small delay to allow click event on suggestion buttons to register first
+        self.after(200, self._hide_suggestions)
+
+    def _hide_suggestions(self):
+        if self.suggestion_win:
+            try:
+                self.suggestion_win.destroy()
+            except Exception:
+                pass
+            self.suggestion_win = None
+
+    def update_suggestions(self, new_suggestions):
+        self.suggestions = new_suggestions

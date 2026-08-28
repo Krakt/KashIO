@@ -8,7 +8,7 @@ class TicketWidget(BaseWidget):
         
         # Define the labels for the tickets
         headers = ["Période", "Emplacement", "Méthode", "Montant"]
-        super().__init__(master, title, headers=headers, **kwargs)
+        super().__init__(master, headers=headers, title=title, **kwargs)
 
 
         self.create_new_row()

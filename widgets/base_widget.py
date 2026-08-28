@@ -4,7 +4,7 @@ class BaseWidget(ctk.CTkFrame):
     """
     Parent class for the ticket and reduction widget
     """
-    def __init__(self, master, title, headers, on_change=None, **kwargs):
+    def __init__(self, master, headers, title="", on_change=None, **kwargs):
         """
         Initialize the base widget and build the template.
 
@@ -21,8 +21,9 @@ class BaseWidget(ctk.CTkFrame):
         self.grid_rowconfigure(2, weight=1)
 
         # Title
-        self.title_lbl = ctk.CTkLabel(self, text=title, font=("Arial", 16, "bold"))
-        self.title_lbl.grid(row=0, column=0, padx=10, pady=10, sticky="nw")
+        if title != "":
+            self.title_lbl = ctk.CTkLabel(self, text=title, font=("Arial", 16, "bold"))
+            self.title_lbl.grid(row=0, column=0, padx=10, pady=10, sticky="nw")
 
         # Scrollable Frame
         self.scrollable_frame = ctk.CTkScrollableFrame(self)

@@ -14,7 +14,7 @@ class ReductionWidget(BaseWidget):
         
         # Define the reduction section columns
         headers = ["Nombre", "Méthode", "Montant"]
-        super().__init__(master, title, headers=headers, **kwargs)
+        super().__init__(master, headers=headers, title=title, **kwargs)
 
 
         self.warning_lbl = ctk.CTkLabel(

@@ -47,21 +47,21 @@ class DailyTab(ctk.CTkFrame):
 
         # Page 1: Tickets
         self.page_tickets = TicketWidget(self.wizard_container,
-                                         title="Tickets",
+                                         title="",
                                          on_change=self.app_controller.calculate_all_values,
-                                         fg_color="red")
+                                         fg_color="transparent")
         
         # Page 2: Reductions
         self.page_reductions = ReductionWidget(self.wizard_container,
-                                               title="Reductions",
+                                               title="",
                                                on_change=self.app_controller.calculate_all_values,
-                                               fg_color="blue")
+                                               fg_color="transparent")
 
         # Page 3: Expenses
         self.page_expenses = ExpenseWidget(self.wizard_container,
-                                           title="Dépenses",
+                                           title="",
                                            on_change=self.app_controller.calculate_all_values,
-                                           fg_color="green")
+                                           fg_color="transparent")
         
         # Page 4: Dashboard & Save Button
         self.page_dashboard_container = ctk.CTkFrame(self.wizard_container, fg_color="transparent")
@@ -73,7 +73,7 @@ class DailyTab(ctk.CTkFrame):
         self.dashboard_scrollable_frame.columnconfigure(0, weight=1)  # Dashboard expands to fill space
         self.dashboard_scrollable_frame.grid(row=0, column=0, sticky="news", padx=5, pady=(5, 10))
 
-        self.page_dashboard = DashboardWidget(self.dashboard_scrollable_frame, title="Clôture", fg_color="yellow")
+        self.page_dashboard = DashboardWidget(self.dashboard_scrollable_frame, title="Clôture", fg_color="transparent")
         self.page_dashboard.grid(row=0, column=0, sticky="news", padx=5, pady=(5, 10))
 
         self.save_button = ctk.CTkButton(self.page_dashboard_container, text="Enregistrer la clôture",
