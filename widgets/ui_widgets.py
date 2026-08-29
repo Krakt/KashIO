@@ -48,11 +48,11 @@ class PeriodCard(ctk.CTkFrame):
 
         # Period Title
         self.title_lbl = ctk.CTkLabel(self, text=title, font=("Arial", 12, "bold"))
-        self.title_lbl.grid(row=0, column=0, columnspan=2, pady=(5, 2), sticky="ew")
+        self.title_lbl.grid(row=0, column=0, columnspan=3, pady=(5, 2), sticky="ew")
 
         # Gross Amount (Highlighted)
         self.amount_lbl = ctk.CTkLabel(self, text=f"{amount} CHF", font=("Arial", 14, "bold"))
-        self.amount_lbl.grid(row=1, column=0, columnspan=2, pady=(0, 5), sticky="ew")
+        self.amount_lbl.grid(row=1, column=0, columnspan=3, pady=(0, 5), sticky="ew")
 
         # Detailed breakdown labels
         self.total_tickets_lbl = ctk.CTkLabel(self, text=f"Total Tickets: {ticket_count}", font=("Arial", 11))
@@ -65,14 +65,18 @@ class PeriodCard(ctk.CTkFrame):
         self.takeaway_lbl.grid(row=2, column=1, sticky="w", padx=10)
 
         self.delivery_lbl = ctk.CTkLabel(self, text=f"Livraison: {delivery_count}", font=("Arial", 10))
-        self.delivery_lbl.grid(row=3, column=1, columnspan=2, sticky="w", padx=10)
+        self.delivery_lbl.grid(row=3, column=1, sticky="w", padx=10)
 
-    def update_values(self, ticket_count, eat_in_count, takeaway_count, delivery_count, amount):
+        self.just_eat_lbl = ctk.CTkLabel(self, text=f"Just Eat: {delivery_count}", font=("Arial", 10))
+        self.just_eat_lbl.grid(row=2, column=2, sticky="w", padx=10)
+
+    def update_values(self, ticket_count, eat_in_count, takeaway_count, delivery_count, just_eat_count, amount):
         """Refreshes all counts and the monetary total for the period card."""
         self.total_tickets_lbl.configure(text=f"Total Tickets: {ticket_count}")
         self.eat_in_lbl.configure(text=f"Sur place: {eat_in_count}")
         self.takeaway_lbl.configure(text=f"À emporter: {takeaway_count}")
         self.delivery_lbl.configure(text=f"Livraison: {delivery_count}")
+        self.just_eat_lbl.configure(text=f"Just Eat: {just_eat_count}")
         self.amount_lbl.configure(text=f"{amount} CHF")
 
 

@@ -72,41 +72,80 @@ def ensure_closures_dir():
         os.makedirs(CLOSURES_DIR)
         print(f"[INFO] Created directory: {CLOSURES_DIR}")
 
-def save_closure_to_database(tickets_data, reductions_data, closure_date, is_email_sent):
-    # Ensure the directory exists before saving anything
+
+def get_or_create_shop(cursor, shop_name):
+    """Finds a shop by name (case-insensitive) or creates it if it doesn't exist."""
+    cleaned_name = shop_name.strip()
+    if not cleaned_name:
+        cleaned_name = "Inconnu"
+        
+    cursor.execute("SELECT id FROM shops WHERE LOWER(name) = LOWER(?)", (cleaned_name,))
+    row = cursor.fetchone()
+    if row:
+        return row[0]
+    
+    cursor.execute("INSERT INTO shops (name) VALUES (?)", (cleaned_name,))
+    return cursor.lastrowid
+
+
+def save_closure_to_database(tickets_data, reductions_data, expenses_data, closure_date, is_email_sent):
     ensure_closures_dir()
     
     with get_db_connection() as conn:
         cursor = conn.cursor()
         try:
             cursor.execute("""
-                INSERT INTO closures (closure_date, is_email_sent) 
+                INSERT OR REPLACE INTO closures (closure_date, is_email_sent) 
                 VALUES (?, ?)
             """, (closure_date, 1 if is_email_sent else 0))
             closure_id = cursor.lastrowid
 
+            # Save Tickets using new schema mapping
             for ticket in tickets_data:
+                is_evening = 1 if ticket["period"].get_value() == "evening" else 0
+                location_val = ticket["location"].get_value()
+                location_id = 1 if location_val == "eat_in" else (2 if location_val == "takeaway" else 3)
+
                 cursor.execute("""
-                    INSERT INTO tickets (closure_id, wording, is_evening, is_takeaway, method, amount)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO tickets (closure_id, is_evening, location_id, method, amount)
+                    VALUES (?, ?, ?, ?, ?)
                 """, (
                     closure_id,
-                    ticket["wording"].get(),
-                    1 if ticket["evening"].get() else 0,
-                    1 if ticket["takeaway"].get() else 0,
-                    ticket["method"].get(),
-                    float(ticket["amount"].get() or 0)
+                    is_evening,
+                    location_id,
+                    ticket["method"].get_value(),
+                    float(ticket["amount"].get_value() or 0.0)
                 ))
 
+            # Save Reductions
             for reduction in reductions_data:
+                count = int(reduction["reduction_count"].get() or 0)
+                if count > 0:
+                    amount_val = reduction["reduction_amount"].get_value() if hasattr(reduction["reduction_amount"], "get_value") else float(reduction["reduction_amount"].get() or 0.0)
+                    cursor.execute("""
+                        INSERT INTO reductions (closure_id, count, method, amount)
+                        VALUES (?, ?, ?, ?)
+                    """, (
+                        closure_id,
+                        count,
+                        reduction["reduction_method"].get(),
+                        float(amount_val or 0.0)
+                    ))
+
+            # Save Expenses with shop lookup/creation
+            for expense in expenses_data:
+                shop_name = expense["shop"].get_value()
+                shop_id = get_or_create_shop(cursor, shop_name)
+                
                 cursor.execute("""
-                    INSERT INTO reductions (closure_id, count, method, amount)
-                    VALUES (?, ?, ?, ?)
+                    INSERT INTO expenses (closure_id, shop_id, category_code, method, amount)
+                    VALUES (?, ?, ?, ?, ?)
                 """, (
                     closure_id,
-                    int(reduction["reduction_count"].get() or 0),
-                    reduction["reduction_method"].get(),
-                    float(reduction["reduction_amount"].get() or 0)
+                    shop_id,
+                    expense["category"].get_value(),
+                    expense["method"].get_value(),
+                    float(expense["amount"].get_value() or 0.0)
                 ))
 
             conn.commit()

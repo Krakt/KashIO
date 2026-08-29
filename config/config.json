@@ -10,7 +10,8 @@
     "locations": [
       {"id": 1, "code": "eat_in", "text": {"fr": "Sur place", "de": "Vor Ort"}},
       {"id": 2, "code": "takeaway", "text": {"fr": "Emporté", "de": "Mitnehmen"}},
-      {"id": 3, "code": "delivery", "text": {"fr": "Livraison", "de": "Lieferung"}}
+      {"id": 3, "code": "delivery", "text": {"fr": "Livraison", "de": "Lieferung"}},
+      {"id": 4, "code": "just_eat", "text": {"fr": "Just Eat", "de": "Just Eat"}}
     ],
     "payment_methods": [
       {"code": "cash", "text": {"fr": "Espèces", "de": "Bargeld"}},

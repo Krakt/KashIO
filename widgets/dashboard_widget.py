@@ -96,7 +96,6 @@ class DashboardWidget(ctk.CTkFrame):
             self.reduction_cards.append(card)
 
     def update_form_dict(self, data):
-        # ... [other updates remain the same] ...
 
         lunch = data.get('lunch', {})
         evening = data.get('evening', {})
@@ -107,6 +106,7 @@ class DashboardWidget(ctk.CTkFrame):
             lunch.get('eat_in_count', 0),
             lunch.get('ticket_takeaway_count', 0),
             lunch.get('delivery_count', 0),
+            lunch.get('just_eat_count', 0),
             f"{lunch.get('gross_amount', 0.0):.2f}"
         )
         self.evening_period_card.update_values(
@@ -114,6 +114,7 @@ class DashboardWidget(ctk.CTkFrame):
             evening.get('eat_in_count', 0),
             evening.get('ticket_takeaway_count', 0),
             evening.get('delivery_count', 0),
+            evening.get('just_eat_count', 0),
             f"{evening.get('gross_amount', 0.0):.2f}"
         )
         self.total_period_card.update_values(
@@ -121,5 +122,6 @@ class DashboardWidget(ctk.CTkFrame):
             total.get('eat_in_count', 0),
             total.get('ticket_takeaway_count', 0),
             total.get('delivery_count', 0),
+            total.get('just_eat_count', 0),
             f"{total.get('gross_amount', 0.0):.2f}"
         )

@@ -36,8 +36,8 @@ class AppController:
     def _calculate_tickets(self):
         tickets_data = self.app.tab_view.daily_tab_view.page_tickets.rows
         periods = {
-            "lunch": {"ticket_count": 0, "ticket_eatin_count": 0, "ticket_takeaway_count": 0, "ticket_delivery_count": 0, "gross_amount": 0.0},
-            "evening": {"ticket_count": 0, "ticket_eatin_count": 0, "ticket_takeaway_count": 0, "ticket_delivery_count": 0, "gross_amount": 0.0}
+            "lunch": {"ticket_count": 0, "ticket_eatin_count": 0, "ticket_takeaway_count": 0, "ticket_delivery_count": 0, "ticket_just_eat_count": 0, "gross_amount": 0.0},
+            "evening": {"ticket_count": 0, "ticket_eatin_count": 0, "ticket_takeaway_count": 0, "ticket_delivery_count": 0, "ticket_just_eat_count": 0, "gross_amount": 0.0}
         }
         methods = ["cash", "card", "reka", "twint", "other"]
         t_totals = {method: 0.0 for method in methods}
@@ -60,6 +60,8 @@ class AppController:
                 periods[period_key]["ticket_eatin_count"] += 1
             elif location == "takeaway":
                 periods[period_key]["ticket_takeaway_count"] += 1
+            elif location == "just_eat":
+                periods[period_key]["ticket_just_eat_count"] += 1
             else:
                 periods[period_key]["ticket_delivery_count"] += 1
             
@@ -75,7 +77,7 @@ class AppController:
         total_reductions = 0.0
 
         for reduction in reductions_data:
-            reduction_method = reduction["reduction_method"].get() # Update to get_value() if you made it a ValueComboBox
+            reduction_method = reduction["reduction_method"].get_value()
             try:
                 count = int(reduction["reduction_count"].get() or 0)
             except ValueError:
@@ -141,16 +143,17 @@ class AppController:
             filename = f"cloture_{closure_date}.pdf"
             generate_closure_pdf(
                 closure_date,
-                self.app.tab_view.daily_tab_view.section1.rows,
-                self.app.tab_view.daily_tab_view.section2.rows,
+                self.app.tab_view.daily_tab_view.page_tickets.rows,
+                self.app.tab_view.daily_tab_view.page_reductions.rows,
+                self.app.tab_view.daily_tab_view.page_expenses.rows,
                 filename
             )
 
     def _process_summary_data(self, raw_data):
         methods = ["cash", "card", "reka", "twint", "other"]
         periods = {
-            "lunch": {"ticket_count": 0, "eat_in_count": 0, "ticket_takeaway_count": 0, "delivery_count": 0, "gross_amount": 0.0},
-            "evening": {"ticket_count": 0, "eat_in_count": 0, "ticket_takeaway_count": 0, "delivery_count": 0, "gross_amount": 0.0}
+            "lunch": {"ticket_count": 0, "eat_in_count": 0, "ticket_takeaway_count": 0, "delivery_count": 0, "just_eat_count": 0, "gross_amount": 0.0},
+            "evening": {"ticket_count": 0, "eat_in_count": 0, "ticket_takeaway_count": 0, "delivery_count": 0, "just_eat_count": 0, "gross_amount": 0.0}
         }
         t_totals = {m: 0.0 for m in methods}
         t_counts = {m: 0 for m in methods}
@@ -166,6 +169,8 @@ class AppController:
                 periods[period_key]["ticket_takeaway_count"] += count_tickets
             elif location_id == 3:
                 periods[period_key]["delivery_count"] += count_tickets
+            else: # location_id == 4:
+                periods[period_key]["just_eat_count"] += count_tickets
                 
             periods[period_key]["gross_amount"] += total_amount
 
@@ -193,6 +198,7 @@ class AppController:
             "eat_in_count": periods["lunch"]["eat_in_count"] + periods["evening"]["eat_in_count"],
             "ticket_takeaway_count": periods["lunch"]["ticket_takeaway_count"] + periods["evening"]["ticket_takeaway_count"],
             "delivery_count": periods["lunch"]["delivery_count"] + periods["evening"]["delivery_count"],
+            "just_eat_count": periods["lunch"]["just_eat_count"] + periods["evening"]["just_eat_count"],
             "gross_amount": total_gross_amount
         }
 
@@ -246,17 +252,18 @@ class AppController:
             "eat_in_count": lunch["ticket_eatin_count"] + evening["ticket_eatin_count"],
             "ticket_takeaway_count": lunch["ticket_takeaway_count"] + evening["ticket_takeaway_count"],
             "delivery_count": lunch["ticket_delivery_count"] + evening["ticket_delivery_count"],
+            "just_eat_count": lunch["ticket_just_eat_count"] + evening["ticket_just_eat_count"],
             "gross_amount": total_gross
         }
 
         dashboard.lunch_period_card.update_values(
-            lunch["ticket_count"], lunch["ticket_eatin_count"], lunch["ticket_takeaway_count"], lunch["ticket_delivery_count"], f"{lunch['gross_amount']:.2f}"
+            lunch["ticket_count"], lunch["ticket_eatin_count"], lunch["ticket_takeaway_count"], lunch["ticket_delivery_count"], lunch["ticket_just_eat_count"], f"{lunch['gross_amount']:.2f}"
         )
         dashboard.evening_period_card.update_values(
-            evening["ticket_count"], evening["ticket_eatin_count"], evening["ticket_takeaway_count"], evening["ticket_delivery_count"], f"{evening['gross_amount']:.2f}"
+            evening["ticket_count"], evening["ticket_eatin_count"], evening["ticket_takeaway_count"], evening["ticket_delivery_count"], evening["ticket_just_eat_count"], f"{evening['gross_amount']:.2f}"
         )
         dashboard.total_period_card.update_values(
-            total_period_data["ticket_count"], total_period_data["eat_in_count"], total_period_data["ticket_takeaway_count"], total_period_data["delivery_count"], f"{total_period_data['gross_amount']:.2f}"
+            total_period_data["ticket_count"], total_period_data["eat_in_count"], total_period_data["ticket_takeaway_count"], total_period_data["delivery_count"], total_period_data["just_eat_count"], f"{total_period_data['gross_amount']:.2f}"
         )
 
         # Update Reduction cards breakdown
