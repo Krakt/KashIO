@@ -16,7 +16,7 @@ class ClosurePDF(FPDF):
         self.set_font("helvetica", "I", 8)
         self.cell(0, 10, f"Page {self.page_no()}", align="center")
 
-def generate_closure_pdf(closure_date, tickets_data, reductions_data, filename="cloture.pdf"):
+def generate_closure_pdf(closure_date, tickets_data, reductions_data, expense_data, filename="cloture.pdf"):
     pdf = ClosurePDF()
     pdf.add_page()
     
@@ -31,10 +31,10 @@ def generate_closure_pdf(closure_date, tickets_data, reductions_data, filename="
     
     pdf.set_font("helvetica", "", 10)
     for ticket in tickets_data:
-        wording = ticket["wording"].get() or "Sans libellé"
+        period = ticket["period"].get()
         method = ticket["method"].get()
         amount = ticket["amount"].get() or "0.00"
-        pdf.cell(0, 6, f" - {wording} ({method}) : {amount} CHF", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 6, f" - {period} ({method}) : {amount} CHF", new_x="LMARGIN", new_y="NEXT")
         
     pdf.ln(5)
     
